@@ -6,7 +6,6 @@
      <ul>
       <li v-for="color in colorPalette">
         <div class="colorBlock" :style="{background: color}" v-on:mousedown="pickColor(color)"></div>
-        {{color}}
       </li>
      </ul>
    </div>
@@ -47,63 +46,58 @@ export default {
         fuchsia: "#ff00ff",
         purple: "#800080" 
       },
-      currentColor: "FFF"
-    }
-  },
-  computed: {
-    currentMouse: function () {
-      var c = document.getElementById("canvas");
-      var rect = c.getBoundingClientRect();
-      
-      return {
-        x: this.mouse.current.x - rect.left,
-        y: this.mouse.current.y - rect.top
-      }
+      currentColor: "FFF",
+      c: false,
+      ctx: false
     }
   },
   methods: {
     pickColor: function(color) {
       this.currentColor = color;
     },
-    draw: function (event) {
-     if (this.mouse.down ) {
-       var c = document.getElementById("canvas");
-       var ctx = c.getContext("2d");
-       ctx.clearRect(0,0,900,600);
-       ctx.lineTo(this.currentMouse.x, this.currentMouse.y);
+    draw: function (ctx, event) {
+     if (this.mouse.down) {
+       ctx.beginPath();
+       ctx.moveTo(this.mouse.previous.x, this.mouse.previous.y);
+       ctx.lineTo(this.mouse.current.x, this.mouse.current.y);
        ctx.strokeStyle = this.currentColor;
-       console.log(ctx.strokeStyle);
        ctx.lineWidth = 2;
-       ctx.stroke()
+       ctx.stroke();
+       ctx.closePath();
      } 
     },
     handleMouseDown: function (event) {
       this.mouse.down = true;
-      this.mouse.current = {
-        x: event.pageX,
-        y: event.pageY
+      this.mouse.previous = {
+         x: this.mouse.current.x,
+         y: this.mouse.current.y
       }
-      var c = document.getElementById("canvas");
-      var ctx = c.getContext("2d");
-      ctx.moveTo(this.currentMouse.x, this.currentMouse.y)
+      this.mouse.current = {
+        x: event.clientX - this.c.offsetLeft,
+        y: event.clientY - this.c.offsetTop
+      }
     },
     handleMouseUp: function () {
       this.mouse.down = false;
     },
     handleMouseMove: function (event) {
-      this.mouse.current = {
-        x: event.pageX,
-        y: event.pageY
+      this.mouse.previous = {
+        x: this.mouse.current.x,
+        y: this.mouse.current.y
       }
-      this.draw(event)
+      this.mouse.current = {
+       x: event.clientX - this.c.offsetLeft,
+       y: event.clientY - this.c.offsetTop
+      }
+      this.draw(this.ctx, event)
     }
   },
   mounted: function () {
-    var c = document.getElementById("canvas");
-    var ctx = c.getContext("2d");
-    ctx.translate(0.1, 0.1);
-    ctx.imageSmoothingEnabled= false;
-    ctx.strokeStyle = "FFF";
+    this.c = document.getElementById("canvas");
+    this.ctx = this.c.getContext("2d");
+    this.ctx.translate(0.1, 0.1);
+    this.ctx.imageSmoothingEnabled= false;
+    this.ctx.strokeStyle = "FFF";
   }
 }
 </script>
