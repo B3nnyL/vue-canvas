@@ -9,6 +9,11 @@
       </li>
      </ul>
    </div>
+   <div class="toolBox">
+     <ul>
+       <li v-for="tool in toolBox"><button type="button" v-on:mousedown="pickTool(tool)">{{tool.name}}</button></li>
+     </ul>
+   </div>
   </div>
 </template>
 
@@ -46,7 +51,20 @@ export default {
         fuchsia: "#ff00ff",
         purple: "#800080" 
       },
+      toolBox: {
+        pen: {
+          name:"pen",
+          color: "#fff",
+          width: 2
+        },
+        eraser: {
+          name: "eraser",
+          color: "#000",
+          width: 10
+        }
+      },
       currentColor: "FFF",
+      currentLineWidth: 2,
       c: false,
       ctx: false
     }
@@ -55,13 +73,17 @@ export default {
     pickColor: function(color) {
       this.currentColor = color;
     },
+    pickTool: function(tool){
+      this.currentColor = tool.color;
+      this.currentLineWidth = tool.width;
+    },
     draw: function (ctx, event) {
      if (this.mouse.down) {
        ctx.beginPath();
        ctx.moveTo(this.mouse.previous.x, this.mouse.previous.y);
        ctx.lineTo(this.mouse.current.x, this.mouse.current.y);
        ctx.strokeStyle = this.currentColor;
-       ctx.lineWidth = 2;
+       ctx.lineWidth = this.currentLineWidth;
        ctx.stroke();
        ctx.closePath();
      } 
