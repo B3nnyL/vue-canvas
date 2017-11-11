@@ -1,7 +1,14 @@
 <template>
-  <div id="app">
+  <div id="app" class="uk-container">
     <h1>Canvas</h1>
    <canvas id="canvas" v-on:mousedown="handleMouseDown" v-on:mouseup="handleMouseUp" v-on:mousemove="handleMouseMove" width="900px" height="600px"></canvas>
+   <div class="currentStatus">
+     <ul>
+       <li class="colorBlock" :style="{background:currentColor}"></li>
+       <li>{{currentTool}}</li>
+       <li>{{currentLineWidth}}</li>
+     </ul>
+   </div>
    <div class="colorPlatte">
      <ul>
       <li v-for="color in colorPalette">
@@ -11,7 +18,14 @@
    </div>
    <div class="toolBox">
      <ul>
-       <li v-for="tool in toolBox"><button type="button" v-on:mousedown="pickTool(tool)">{{tool.name}}</button></li>
+       <li v-for="tool in toolBox"><button class="uk-button uk-button-default"v-on:mousedown="pickTool(tool)">{{tool.name}}</button></li>
+     </ul>
+   </div>
+   <div class="util">
+     <ul>
+       <li><a v-on:mousedown="saveToPNG()" v-bind:href="downloadHref" download="myDoodle.png">Save</a></li>
+       <li><a v-on:mousedown="clearCanvas()" href="">Clear</a></li>
+       <li><a v-on:mousedown="sendToSlack()">Send to Slack</a></li>
      </ul>
    </div>
   </div>
@@ -65,8 +79,10 @@ export default {
       },
       currentColor: "FFF",
       currentLineWidth: 2,
+      currentTool: "pen",
       c: false,
-      ctx: false
+      ctx: false,
+      downloadHref: ''
     }
   },
   methods: {
@@ -74,6 +90,7 @@ export default {
       this.currentColor = color;
     },
     pickTool: function(tool){
+      this.currentTool = tool.name
       this.currentColor = tool.color;
       this.currentLineWidth = tool.width;
     },
@@ -112,6 +129,22 @@ export default {
        y: event.clientY - this.c.offsetTop
       }
       this.draw(this.ctx, event)
+    },
+    clearCanvas: function(){
+      this.ctx.clearRect(0, 0, this.c.width, this.c.height);
+    },
+    fillUpCanvas: function () {
+      this.ctx.fillStyle = "#000";
+      this.ctx.fillRect(0, 0, this.c.width, this.c.height);
+    },
+    saveToPNG: function(){
+      var image = this.c.toDataURL("image/png").replace("image/png", "image/octet-stream"); //Convert image to 'octet-stream' (Just a download, really)
+      this.downloadHref = image;
+    },
+    sendToSlack: function() {
+      var data = this.ctx.getImageData(0, 0, this.c.width, this.c.height);
+      console.log(data);
+      console.log(JSON.stringify(data));
     }
   },
   mounted: function () {
@@ -120,6 +153,7 @@ export default {
     this.ctx.translate(0.1, 0.1);
     this.ctx.imageSmoothingEnabled= false;
     this.ctx.strokeStyle = "FFF";
+    this.fillUpCanvas();
   }
 }
 </script>
@@ -131,7 +165,7 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
+  margin-top: 50px;
 }
 
 h1, h2 {
@@ -151,14 +185,17 @@ li {
 a {
   color: #42b983;
 }
-canvas{
+canvas {
   background:black;
   box-shadow: 0 2px 3px rgba(0,0,0,0.2)
 }
-.colorBlock{
+.colorBlock {
   width: 15px;
   height: 15px;
-  border: 1px;
-  border-color: black;
+  border: 1px dotted black;
+}
+
+.currentStatus {
+  margin-top: 20px;
 }
 </style>
